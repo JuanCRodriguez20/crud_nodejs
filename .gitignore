@@ -137,3 +137,40 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# TypeScript build output
+dist/
+build/
+
+# Database files
+*.sqlite
+*.db
+database/*.sqlite
+database/*.db
+
+# Temporary files
+temp/
+tmp/
+
+# Angular cache
+.angular/
+*.tsbuildinfo
+
+# Backend specific
+backend/dist/
+backend/temp/
+backend/database/*.sqlite
+
+# Frontend specific  
+frontend/dist/
+frontend/.angular/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

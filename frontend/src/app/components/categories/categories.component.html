@@ -1,0 +1,175 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Categorías</h1>
+        <p class="text-gray-600">Organiza tus transacciones por categorías</p>
+      </div>
+      <button 
+        (click)="showCreateForm = !showCreateForm"
+        class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+      >
+        {{ showCreateForm ? 'Cancelar' : 'Nueva Categoría' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <div class="flex">
+      <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+      </svg>
+      <div class="ml-3">
+        <h3 class="text-sm font-medium text-red-800">Error</h3>
+        <div class="mt-2 text-sm text-red-700">{{ error }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create/Edit Form -->
+  <div *ngIf="showCreateForm" class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">
+      {{ editingCategory ? 'Editar Categoría' : 'Nueva Categoría' }}
+    </h2>
+    
+    <form [formGroup]="categoryForm" (ngSubmit)="onSubmit()" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="name" class="block text-sm font-medium text-gray-700 mb-1">Nombre *</label>
+          <input 
+            type="text" 
+            id="name"
+            formControlName="name"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+            placeholder="Nombre de la categoría"
+          />
+          <div *ngIf="categoryForm.get('name')?.invalid && categoryForm.get('name')?.touched" 
+               class="text-red-500 text-xs mt-1">
+            El nombre es requerido (mínimo 2 caracteres)
+          </div>
+        </div>
+
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+          <input 
+            type="text" 
+            id="description"
+            formControlName="description"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+            placeholder="Descripción opcional"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-2">Color</label>
+        <div class="flex items-center gap-4 mb-4">
+          <div 
+            class="w-12 h-12 rounded-full border-2 border-gray-300 flex items-center justify-center"
+            [style.background-color]="selectedColor"
+          >
+            <span class="text-white text-xs font-semibold">Vista</span>
+          </div>
+          <input 
+            type="color"
+            formControlName="color"
+            class="w-16 h-10 border border-gray-300 rounded cursor-pointer"
+          />
+        </div>
+        
+        <div class="grid grid-cols-10 gap-2">
+          <button 
+            *ngFor="let color of predefinedColors"
+            type="button"
+            (click)="selectColor(color)"
+            class="w-8 h-8 rounded-full border-2 transition-transform hover:scale-110"
+            [style.background-color]="color"
+            [class.ring-2]="selectedColor === color"
+            [class.ring-primary-500]="selectedColor === color"
+          ></button>
+        </div>
+      </div>
+
+      <div class="flex gap-4">
+        <button 
+          type="submit"
+          [disabled]="!isFormValid"
+          class="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+        >
+          {{ editingCategory ? 'Actualizar' : 'Crear' }}
+        </button>
+        <button 
+          type="button"
+          (click)="resetForm()"
+          class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-medium transition-colors"
+        >
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Categories Grid -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Mis Categorías</h2>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <span class="ml-3 text-gray-600">Cargando categorías...</span>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && categories.length === 0" class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No hay categorías</h3>
+      <p class="mt-1 text-sm text-gray-500">Comienza creando tu primera categoría para organizar tus transacciones.</p>
+    </div>
+
+    <!-- Categories Grid -->
+    <div *ngIf="!loading && categories.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 p-6">
+      <div 
+        *ngFor="let category of categories" 
+        class="bg-gray-50 rounded-lg p-4 hover:shadow-md transition-shadow border border-gray-200"
+      >
+        <div class="flex items-start justify-between">
+          <div class="flex items-center flex-1">
+            <div 
+              class="w-4 h-4 rounded-full mr-3 flex-shrink-0"
+              [style.background-color]="category.color"
+            ></div>
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-medium text-gray-900 truncate">{{ category.name }}</h3>
+              <p *ngIf="category.description" class="text-xs text-gray-500 mt-1 truncate">{{ category.description }}</p>
+            </div>
+          </div>
+          
+          <div class="flex gap-2 ml-2">
+            <button 
+              (click)="editCategory(category)"
+              class="text-primary-600 hover:text-primary-800 text-xs font-medium"
+            >
+              Editar
+            </button>
+            <button 
+              (click)="deleteCategory(category.id)"
+              class="text-red-600 hover:text-red-800 text-xs font-medium"
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+        
+        <div class="mt-3 text-xs text-gray-500">
+          Creada: {{ category.createdAt | date:'dd/MM/yyyy' }}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

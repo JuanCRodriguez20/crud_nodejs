@@ -1,0 +1,53 @@
+/* Dashboard specific styles */
+.dashboard-container {
+  min-height: 100vh;
+}
+
+.chart-container {
+  position: relative;
+  height: 320px;
+  width: 100%;
+}
+
+.summary-card {
+  transition: all 0.2s ease-in-out;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.loading-spinner {
+  border-top-color: #3B82F6;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.balance-positive {
+  color: #059669;
+}
+
+.balance-negative {
+  color: #DC2626;
+}
+
+.category-stat-row {
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: #F9FAFB;
+  }
+}
+
+.export-button {
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}

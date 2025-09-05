@@ -1,0 +1,43 @@
+<!-- Navigation Bar -->
+<nav *ngIf="showNavbar && (currentUser$ | async)" class="bg-white shadow-sm border-b border-gray-200">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between h-16">
+      <div class="flex items-center">
+        <h1 class="text-xl font-bold text-gray-900">💰 Dashboard Financiero</h1>
+        <div class="hidden sm:ml-8 sm:flex sm:space-x-8">
+          <a routerLink="/dashboard" 
+             routerLinkActive="border-primary-500 text-primary-600"
+             class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors">
+            Dashboard
+          </a>
+          <a routerLink="/transactions" 
+             routerLinkActive="border-primary-500 text-primary-600"
+             class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors">
+            Transacciones
+          </a>
+          <a routerLink="/categories" 
+             routerLinkActive="border-primary-500 text-primary-600"
+             class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors">
+            Categorías
+          </a>
+        </div>
+      </div>
+      
+      <div class="flex items-center space-x-4">
+        <div *ngIf="currentUser$ | async as user" class="flex items-center space-x-3">
+          <span class="text-sm text-gray-700">Hola, {{ user.name }}</span>
+          <button 
+            (click)="logout()" 
+            class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-3 py-1 rounded-md text-sm font-medium transition-colors">
+            Cerrar Sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<main class="min-h-screen bg-gray-50">
+  <router-outlet></router-outlet>
+</main>

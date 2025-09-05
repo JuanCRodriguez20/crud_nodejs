@@ -1,0 +1,348 @@
+<div class="min-h-screen bg-gray-50 p-6">
+  <!-- Header -->
+  <div class="mb-8">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">Transacciones</h1>
+        <p class="text-gray-600">Gestiona tus ingresos y gastos</p>
+      </div>
+      <button 
+        (click)="showCreateForm = !showCreateForm"
+        class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+      >
+        {{ showCreateForm ? 'Cancelar' : 'Nueva Transacción' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+    <div class="flex">
+      <svg class="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+      </svg>
+      <div class="ml-3">
+        <h3 class="text-sm font-medium text-red-800">Error</h3>
+        <div class="mt-2 text-sm text-red-700">{{ error }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <h3 class="text-lg font-semibold text-gray-900 mb-4">Filtros</h3>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <!-- Category Filter -->
+      <div>
+        <label for="filterCategory" class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+        <select 
+          id="filterCategory"
+          [(ngModel)]="filters.categoryId"
+          (ngModelChange)="onFilterChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+        >
+          <option value="">Todas las categorías</option>
+          <option *ngFor="let category of categories" [value]="category.id">
+            {{ category.name }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Type Filter -->
+      <div>
+        <label for="filterType" class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+        <select 
+          id="filterType"
+          [(ngModel)]="filters.type"
+          (ngModelChange)="onFilterChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+        >
+          <option value="">Todos los tipos</option>
+          <option value="income">Ingresos</option>
+          <option value="expense">Gastos</option>
+        </select>
+      </div>
+
+      <!-- Start Date Filter -->
+      <div>
+        <label for="filterStartDate" class="block text-sm font-medium text-gray-700 mb-1">Fecha desde</label>
+        <input 
+          type="date" 
+          id="filterStartDate"
+          [(ngModel)]="filterStartDate"
+          (ngModelChange)="onDateFilterChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+        />
+      </div>
+
+      <!-- End Date Filter -->
+      <div>
+        <label for="filterEndDate" class="block text-sm font-medium text-gray-700 mb-1">Fecha hasta</label>
+        <input 
+          type="date" 
+          id="filterEndDate"
+          [(ngModel)]="filterEndDate"
+          (ngModelChange)="onDateFilterChange()"
+          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+        />
+      </div>
+    </div>
+
+    <!-- Clear Filters Button -->
+    <div class="mt-4">
+      <button 
+        (click)="clearFilters()"
+        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+      >
+        Limpiar Filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Create/Edit Form -->
+  <div *ngIf="showCreateForm" class="bg-white rounded-lg shadow p-6 mb-6">
+    <h2 class="text-lg font-semibold text-gray-900 mb-4">
+      {{ editingTransaction ? 'Editar Transacción' : 'Nueva Transacción' }}
+    </h2>
+    
+    <form [formGroup]="transactionForm" (ngSubmit)="onSubmit()" class="space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Descripción</label>
+          <input 
+            type="text" 
+            id="description"
+            formControlName="description"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+            placeholder="Descripción de la transacción"
+          />
+          <div *ngIf="transactionForm.get('description')?.invalid && transactionForm.get('description')?.touched" 
+               class="text-red-500 text-xs mt-1">
+            La descripción es requerida (mínimo 3 caracteres)
+          </div>
+        </div>
+
+        <div>
+          <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Monto</label>
+          <input 
+            type="number" 
+            id="amount"
+            formControlName="amount"
+            step="0.01"
+            min="0"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+            placeholder="0.00"
+          />
+          <div *ngIf="transactionForm.get('amount')?.invalid && transactionForm.get('amount')?.touched" 
+               class="text-red-500 text-xs mt-1">
+            El monto debe ser mayor a 0
+          </div>
+        </div>
+
+        <div>
+          <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Tipo</label>
+          <select 
+            id="type"
+            formControlName="type"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="income">Ingreso</option>
+            <option value="expense">Gasto</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="categoryId" class="block text-sm font-medium text-gray-700 mb-1">Categoría</label>
+          <select 
+            id="categoryId"
+            formControlName="categoryId"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+          >
+            <option value="">Seleccionar categoría</option>
+            <option *ngFor="let category of categories" [value]="category.id">
+              {{ category.name }}
+            </option>
+          </select>
+          <div *ngIf="transactionForm.get('categoryId')?.invalid && transactionForm.get('categoryId')?.touched" 
+               class="text-red-500 text-xs mt-1">
+            Selecciona una categoría
+          </div>
+        </div>
+
+        <div>
+          <label for="date" class="block text-sm font-medium text-gray-700 mb-1">Fecha</label>
+          <input 
+            type="date" 
+            id="date"
+            formControlName="date"
+            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary-500 focus:border-primary-500"
+          />
+        </div>
+      </div>
+
+      <div class="flex gap-4">
+        <button 
+          type="submit"
+          [disabled]="!isFormValid"
+          class="bg-primary-600 hover:bg-primary-700 disabled:bg-gray-300 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+        >
+          {{ editingTransaction ? 'Actualizar' : 'Crear' }}
+        </button>
+        <button 
+          type="button"
+          (click)="resetForm()"
+          class="bg-gray-300 hover:bg-gray-400 text-gray-700 px-6 py-2 rounded-lg font-medium transition-colors"
+        >
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Transactions List -->
+  <div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200">
+      <h2 class="text-lg font-semibold text-gray-900">Lista de Transacciones</h2>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      <span class="ml-3 text-gray-600">Cargando transacciones...</span>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && transactions.length === 0" class="text-center py-12">
+      <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+      </svg>
+      <h3 class="mt-2 text-sm font-medium text-gray-900">No hay transacciones</h3>
+      <p class="mt-1 text-sm text-gray-500">Comienza creando tu primera transacción.</p>
+    </div>
+
+    <!-- Transactions Table -->
+    <div *ngIf="!loading && transactions.length > 0" class="overflow-x-auto">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <tr *ngFor="let transaction of transactions" class="hover:bg-gray-50">
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm font-medium text-gray-900">{{ transaction.description }}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="text-sm" [ngClass]="{
+                'text-green-600 font-semibold': transaction.type === 'income',
+                'text-red-600 font-semibold': transaction.type === 'expense'
+              }">
+                {{ transaction.type === 'income' ? '+' : '-' }}${{ transaction.amount | number:'1.2-2' }}
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full" [ngClass]="{
+                'bg-green-100 text-green-800': transaction.type === 'income',
+                'bg-red-100 text-red-800': transaction.type === 'expense'
+              }">
+                {{ transaction.type === 'income' ? 'Ingreso' : 'Gasto' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center">
+                <div 
+                  class="w-3 h-3 rounded-full mr-2"
+                  [style.background-color]="getCategoryColor(transaction.categoryId)"
+                ></div>
+                <span class="text-sm text-gray-900">{{ getCategoryName(transaction.categoryId) }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              {{ transaction.date | date:'dd/MM/yyyy' }}
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <button 
+                (click)="editTransaction(transaction)"
+                class="text-primary-600 hover:text-primary-900 mr-4"
+              >
+                Editar
+              </button>
+              <button 
+                (click)="deleteTransaction(transaction.id)"
+                class="text-red-600 hover:text-red-900"
+              >
+                Eliminar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="totalPages > 1" class="bg-white px-4 py-3 flex items-center justify-between border-t border-gray-200 sm:px-6">
+      <div class="flex-1 flex justify-between sm:hidden">
+        <button 
+          [disabled]="currentPage === 1"
+          (click)="onPageChange(currentPage - 1)"
+          class="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+        >
+          Anterior
+        </button>
+        <button 
+          [disabled]="currentPage === totalPages"
+          (click)="onPageChange(currentPage + 1)"
+          class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50"
+        >
+          Siguiente
+        </button>
+      </div>
+      
+      <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+        <div>
+          <p class="text-sm text-gray-700">
+            Mostrando {{ (currentPage - 1) * itemsPerPage + 1 }} - {{ Math.min(currentPage * itemsPerPage, totalTransactions) }} de {{ totalTransactions }} transacciones
+          </p>
+        </div>
+        <div>
+          <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+            <button 
+              [disabled]="currentPage === 1"
+              (click)="onPageChange(currentPage - 1)"
+              class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Anterior
+            </button>
+            
+            <button 
+              *ngFor="let page of [].constructor(totalPages); let i = index"
+              [disabled]="currentPage === i + 1"
+              (click)="onPageChange(i + 1)"
+              [ngClass]="{
+                'bg-primary-50 border-primary-500 text-primary-600': currentPage === i + 1,
+                'bg-white border-gray-300 text-gray-500 hover:bg-gray-50': currentPage !== i + 1
+              }"
+              class="relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+            >
+              {{ i + 1 }}
+            </button>
+            
+            <button 
+              [disabled]="currentPage === totalPages"
+              (click)="onPageChange(currentPage + 1)"
+              class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Siguiente
+            </button>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
